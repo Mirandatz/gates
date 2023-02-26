@@ -1,0 +1,6 @@
+attrs
+loguru
+numba
+numpy==1.23
+pandas
+scikit-learn
