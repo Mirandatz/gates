@@ -1,18 +1,17 @@
 import numba
-import numpy as np
-import numpy.typing as npt
 from numba.experimental import jitclass
 
 import gates.randomness as rand
+from gates.type_aliases import BoolArray
 
 
 @jitclass([("_mask", numba.boolean[:])])
 class NOrGate:
-    def __init__(self, mask: npt.NDArray[np.bool8]) -> None:
+    def __init__(self, mask: BoolArray) -> None:
         assert len(mask) > 0
         self._mask = mask.copy()
 
-    def predict(self, features: npt.NDArray[np.bool8]) -> bool:
+    def predict(self, features: BoolArray) -> bool:
         assert len(self._mask) <= len(features)
 
         result = False
