@@ -6,7 +6,7 @@ from gates.type_aliases import BoolArray
 
 
 @jitclass([("_mask", numba.boolean[:])])
-class NOrGate:
+class NorGate:
     def __init__(self, mask: BoolArray) -> None:
         assert len(mask) > 0
         self._mask = mask.copy()
@@ -24,9 +24,9 @@ class NOrGate:
 
 
 @numba.njit(cache=True)  # type: ignore
-def create_gate(mask_size: int, rng: rand.RNG) -> NOrGate:
+def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
     assert mask_size > 0
 
     random_values = rng.random(size=mask_size)
     mask = (random_values > 0.5).flatten()
-    return NOrGate(mask)
+    return NorGate(mask)

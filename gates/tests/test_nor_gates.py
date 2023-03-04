@@ -31,6 +31,6 @@ def test_parametrized(
     indices: list[bool],
     expected: bool,
 ) -> None:
-    gate = ng.NOrGate(np.asarray(indices))
+    gate = ng.NorGate(np.asarray(indices))
     predicted = gate.predict(np.asarray(features))
     assert expected == predicted
