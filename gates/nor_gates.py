@@ -1,29 +1,32 @@
-import numba
+from numba import boolean, njit
 from numba.experimental import jitclass
 
 import gates.randomness as rand
 from gates.type_aliases import BoolArray
 
 
-@jitclass([("_mask", numba.boolean[:])])
+@jitclass
 class NorGate:
+    """
+    Instances of this class are mutable due to technical limitations;
+    they should be treated as if they were immutable.
+    """
+
+    mask: boolean[:]
+
     def __init__(self, mask: BoolArray) -> None:
         assert len(mask) > 0
-        self._mask = mask.copy()
+        self.mask = mask.copy()
 
     def predict(self, features: BoolArray) -> bool:
-        assert len(self._mask) <= len(features)
+        assert len(self.mask) <= len(features)
 
-        result = False
-
-        for i in range(len(self._mask)):
-            if self._mask[i]:
-                result = result or features[i]
-
-        return not result
+        relevant_features = features[self.mask]
+        ored_features = relevant_features.sum() >= 1
+        return not ored_features
 
 
-@numba.njit(cache=True)  # type: ignore
+@njit(cache=True)  # type: ignore
 def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
     assert mask_size > 0
 
