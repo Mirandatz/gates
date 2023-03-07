@@ -24,7 +24,7 @@ class NorGate:
 
     def predict(self, features: BoolArray) -> bool:
         """
-        Predicts the value of a single dataset row.
+        Predicts the label of a single dataset row.
         """
         assert len(self.mask) <= len(features)
 
@@ -63,7 +63,7 @@ class NorClassifier:
 
     def predict(self, features: BoolArray) -> BoolArray:
         """
-        Predicts the value of a single dataset row.
+        Predicts the labels of a single dataset row.
         """
 
         assert features.ndim == 1
@@ -87,6 +87,27 @@ class NorClassifier:
 
         # return the output of the last gates
         return augmented_features[-self.class_count :]
+
+    def predict_dataset(self, dataset: BoolArray) -> BoolArray:
+        """
+        Predicts the labels of all dataset rows.
+        """
+
+        assert dataset.ndim == 2
+
+        num_instances, num_features = dataset.shape
+
+        predicted_labels = np.empty(
+            shape=(num_instances, self.class_count),
+            dtype=np.bool8,
+        )
+
+        for index in range(num_instances):
+            instance_features = dataset[index]
+            instance_labels = self.predict(instance_features)
+            predicted_labels[index] = instance_labels
+
+        return predicted_labels
 
 
 @njit(cache=True)  # type: ignore

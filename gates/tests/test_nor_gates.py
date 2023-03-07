@@ -47,4 +47,10 @@ def test_gate_predict_instance(
 
 @pytest.mark.xfail(reason="Not implemented")
 def test_nor_classifier_predict_instance() -> None:
-    raise NotImplementedError()
+    features = np.asarray([1, 1, 1], np.bool8)
+
+    gates = [
+        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool8)),
+        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool8)),
+        ng.NorGate(np.asarray([1, 1, 1, 1, 1], dtype=np.bool8)),
+    ]
