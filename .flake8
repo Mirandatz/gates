@@ -1,4 +1,7 @@
 [flake8]
 extend-ignore = E203, E501, W503
 extend-select = W504
-exclude = playground/*/*
+exclude = 
+    __pycache__
+    playground/
+    .venv/
