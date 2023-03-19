@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from numba.typed import List as NumbaList
 
 import gates.nor_gates as ng
 
@@ -45,7 +46,6 @@ def test_gate_predict_instance(
     assert expected == predicted
 
 
-@pytest.mark.xfail(reason="Not implemented")
 def test_nor_classifier_predict_instance() -> None:
     features = np.asarray([1, 1, 1], np.bool8)
 
@@ -54,3 +54,12 @@ def test_nor_classifier_predict_instance() -> None:
         ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool8)),
         ng.NorGate(np.asarray([1, 1, 1, 1, 1], dtype=np.bool8)),
     ]
+
+    classifier = ng.NorClassifier(
+        NumbaList(gates),
+        class_count=3,
+    )
+
+    predicted = classifier.predict(features)
+    expected = np.asarray([0, 0, 0], np.bool8)
+    assert np.array_equal(expected, predicted)
