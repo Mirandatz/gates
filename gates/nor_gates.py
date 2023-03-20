@@ -147,26 +147,3 @@ def create_classifier(
         num_features=num_features,
         num_classes=num_classes,
     )
-
-
-def main() -> None:
-    features = np.asarray([1, 1, 1], np.bool8)
-
-    gates = [
-        NorGate(np.asarray([0], np.bool8)),
-        NorGate(np.asarray([0, 1], np.bool8)),
-        NorGate(np.asarray([0, 0, 0], np.bool8)),
-    ]
-
-    for g in gates:
-        print(g.predict_instance(features))
-
-    c0 = NorClassifier(
-        gates=NumbaList(gates), num_features=len(features), num_classes=3
-    )
-
-    print(c0.predict_instance(features))
-
-
-if __name__ == "__main__":
-    main()
