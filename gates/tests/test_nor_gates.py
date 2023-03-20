@@ -42,7 +42,7 @@ def test_gate_predict_instance(
     expected: bool,
 ) -> None:
     gate = ng.NorGate(np.asarray(indices))
-    predicted = gate.predict(np.asarray(features))
+    predicted = gate.predict_instance(np.asarray(features))
     assert expected == predicted
 
 
@@ -56,10 +56,11 @@ def test_nor_classifier_predict_instance() -> None:
     ]
 
     classifier = ng.NorClassifier(
-        NumbaList(gates),
-        class_count=3,
+        gates=NumbaList(gates),
+        num_features=3,
+        num_classes=3,
     )
 
-    predicted = classifier.predict(features)
+    predicted = classifier.predict_instance(features)
     expected = np.asarray([0, 0, 0], np.bool8)
     assert np.array_equal(expected, predicted)

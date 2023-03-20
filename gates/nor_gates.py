@@ -22,7 +22,7 @@ class NorGate:
         assert len(mask) >= 1
         self.mask = mask.copy()
 
-    def predict(self, features: BoolArray) -> bool:
+    def predict_instance(self, features: BoolArray) -> bool:
         """
         Predicts the label of a single dataset row.
         """
@@ -41,15 +41,18 @@ class NorClassifier:
     """
 
     gates: typing.List[NorGate]
-    class_count: int
+    num_features: int
+    num_classes: int
 
     def __init__(
         self,
         gates: typing.List[NorGate],
-        class_count: int,
+        num_features: int,
+        num_classes: int,
     ) -> None:
-        assert len(gates) >= 1
-        assert len(gates) >= class_count
+        assert num_features >= 1
+        assert num_classes >= 2
+        assert len(gates) >= num_classes
 
         # todo: explain why we perform this validation (flat vs layered storage)
         for i in range(1, len(gates)):
@@ -58,10 +61,13 @@ class NorClassifier:
 
             assert len(prev.mask) <= len(curr.mask)
 
-        self.gates = NumbaList(gates)
-        self.class_count = class_count
+        assert len(gates[0].mask) <= num_features
 
-    def predict(self, features: BoolArray) -> BoolArray:
+        self.gates = NumbaList(gates)
+        self.num_features = num_features
+        self.num_classes = num_classes
+
+    def predict_instance(self, features: BoolArray) -> BoolArray:
         """
         Predicts the labels of a single dataset row.
         """
@@ -82,11 +88,11 @@ class NorClassifier:
         # feed features plus previous gate outputs to current gate
         for i, g in enumerate(self.gates):
             visible_features = augmented_features[: feature_count + i]
-            gate_prediction = g.predict(visible_features)
+            gate_prediction = g.predict_instance(visible_features)
             augmented_features[feature_count + i] = gate_prediction
 
         # return the output of the last gates
-        return augmented_features[-self.class_count :]
+        return augmented_features[-self.num_classes :]
 
     def predict_dataset(self, dataset: BoolArray) -> BoolArray:
         """
@@ -98,13 +104,13 @@ class NorClassifier:
         num_instances, num_features = dataset.shape
 
         predicted_labels = np.empty(
-            shape=(num_instances, self.class_count),
+            shape=(num_instances, self.num_classes),
             dtype=np.bool8,
         )
 
         for index in range(num_instances):
             instance_features = dataset[index]
-            instance_labels = self.predict(instance_features)
+            instance_labels = self.predict_instance(instance_features)
             predicted_labels[index] = instance_labels
 
         return predicted_labels
@@ -119,6 +125,30 @@ def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
     return NorGate(mask)
 
 
+@njit(cache=True)  # type: ignore
+def create_classifier(
+    num_gates: int,
+    num_features: int,
+    num_classes: int,
+    rng: rand.RNG,
+) -> NorClassifier:
+    assert num_features >= 1
+    assert num_classes >= 2
+    assert num_gates >= num_classes
+
+    gates = NumbaList()
+
+    for i in range(num_gates):
+        g = create_gate(mask_size=num_features + i, rng=rng)
+        gates.append(g)
+
+    return NorClassifier(
+        gates=gates,
+        num_features=num_features,
+        num_classes=num_classes,
+    )
+
+
 def main() -> None:
     features = np.asarray([1, 1, 1], np.bool8)
 
@@ -129,11 +159,13 @@ def main() -> None:
     ]
 
     for g in gates:
-        print(g.predict(features))
+        print(g.predict_instance(features))
 
-    c0 = NorClassifier(NumbaList(gates), 3)
+    c0 = NorClassifier(
+        gates=NumbaList(gates), num_features=len(features), num_classes=3
+    )
 
-    print(c0.predict(features))
+    print(c0.predict_instance(features))
 
 
 if __name__ == "__main__":
