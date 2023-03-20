@@ -6,7 +6,7 @@
 #    pip-compile-multi
 #
 -r base.txt
-exceptiongroup==1.1.0
+exceptiongroup==1.1.1
     # via pytest
 iniconfig==2.0.0
     # via pytest
@@ -14,7 +14,7 @@ packaging==23.0
     # via pytest
 pluggy==1.0.0
     # via pytest
-pytest==7.2.1
+pytest==7.2.2
     # via -r requirements/test.in
 tomli==2.0.1
     # via pytest
