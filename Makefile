@@ -18,7 +18,7 @@ dev_env:
 		--build-arg UNAME=$(UNAME) \
     	--build-arg UID=$(UID) \
     	--build-arg GID=$(GID) \
-		-f Dockerfile.dev_env \
+		-f Dockerfile \
 		-t $(DEV_ENG_TAG) .
 
 .PHONY: run_tests
