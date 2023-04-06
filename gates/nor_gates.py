@@ -116,7 +116,6 @@ class NorClassifier:
         return predicted_labels
 
 
-@njit(cache=True)  # type: ignore
 def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
     assert mask_size > 0
 
@@ -125,7 +124,6 @@ def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
     return NorGate(mask)
 
 
-@njit(cache=True)  # type: ignore
 def create_classifier(
     num_gates: int,
     num_features: int,
@@ -143,7 +141,7 @@ def create_classifier(
         gates.append(g)
 
     return NorClassifier(
-        gates=gates,
-        num_features=num_features,
-        num_classes=num_classes,
+        gates,
+        num_features,
+        num_classes,
     )
