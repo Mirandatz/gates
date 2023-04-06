@@ -1,7 +1,7 @@
 import typing
 
 import numpy as np
-from numba import boolean, njit  # type: ignore
+from numba import boolean, njit, prange  # type: ignore
 from numba.experimental import jitclass
 from numba.typed import List as NumbaList
 
@@ -94,26 +94,31 @@ class NorClassifier:
         # return the output of the last gates
         return augmented_features[-self.num_classes :]
 
-    def predict_dataset(self, dataset: BoolArray) -> BoolArray:
-        """
-        Predicts the labels of all dataset rows.
-        """
 
-        assert dataset.ndim == 2
+@njit(parallel=True)  # type: ignore
+def parallel_predict_dataset(
+    classifier: NorClassifier,
+    dataset: BoolArray,
+) -> BoolArray:
+    """
+    Predicts the labels of all dataset rows.
+    """
 
-        num_instances, num_features = dataset.shape
+    assert dataset.ndim == 2
 
-        predicted_labels = np.empty(
-            shape=(num_instances, self.num_classes),
-            dtype=np.bool8,
-        )
+    num_instances, num_features = dataset.shape
 
-        for index in range(num_instances):
-            instance_features = dataset[index]
-            instance_labels = self.predict_instance(instance_features)
-            predicted_labels[index] = instance_labels
+    predicted_labels = np.empty(
+        shape=(num_instances, classifier.num_classes),
+        dtype=np.bool8,
+    )
 
-        return predicted_labels
+    for index in prange(num_instances):
+        instance_features = dataset[index]
+        instance_labels = classifier.predict_instance(instance_features)
+        predicted_labels[index] = instance_labels
+
+    return predicted_labels
 
 
 def create_gate(mask_size: int, rng: rand.RNG) -> NorGate:
