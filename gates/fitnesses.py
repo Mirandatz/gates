@@ -1,10 +1,14 @@
+import typing
+
 import numpy as np
 import numpy.typing as npt
 from sklearn.metrics import accuracy_score
 
 import gates.nor_gates as ng
 
-EvalutedIndividual = tuple[ng.NorClassifier, float]
+T = typing.TypeVar("T")
+
+EvalutedIndividual = tuple[T, float]
 
 
 def evaluate_fitness(
@@ -19,9 +23,9 @@ def evaluate_fitness(
 
 
 def select_fittest(
-    individuals: list[EvalutedIndividual],
+    individuals: list[EvalutedIndividual[T]],
     fittest_count: int,
-) -> list[EvalutedIndividual]:
+) -> list[EvalutedIndividual[T]]:
     assert fittest_count <= len(individuals)
 
     from_best_to_worst = sorted(
