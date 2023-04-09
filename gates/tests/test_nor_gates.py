@@ -64,3 +64,14 @@ def test_nor_classifier_predict_instance() -> None:
     predicted = classifier.predict_instance(features)
     expected = np.asarray([0, 0, 0], np.bool8)
     assert np.array_equal(expected, predicted)
+
+
+def test_nor_gates_hash_and_eq() -> None:
+    g1 = ng.NorGate(np.asarray([0, 0, 0], np.bool_))
+    g2 = ng.NorGate(np.asarray([0, 0, 0], np.bool_))
+    g3 = ng.NorGate(np.asarray([0, 1, 0], np.bool_))
+
+    assert hash(g1) == hash(g2)
+    assert g1 == g2
+    assert hash(g1) != hash(g3)
+    assert g1 != g3

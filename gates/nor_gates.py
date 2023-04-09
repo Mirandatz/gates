@@ -17,10 +17,18 @@ class NorGate:
     """
 
     mask: boolean[:]
+    _hash: int
 
     def __init__(self, mask: BoolArray) -> None:
         assert len(mask) >= 1
         self.mask = mask.copy()
+
+        hash = 2166136261
+        hash = (hash * 16777619) ^ len(mask)
+        for index, value in enumerate(mask):
+            hash = (hash * 16777619) ^ ((index + 1) * (value + 2))
+
+        self._hash = hash
 
     def predict_instance(self, features: BoolArray) -> bool:
         """
@@ -31,6 +39,14 @@ class NorGate:
         relevant_features = features[self.mask]
         ored_features = relevant_features.sum() >= 1
         return not ored_features
+
+    def __eq__(self, other: object) -> bool:
+        # todo: improve this once numba is updated, because right now
+        # we are unable to perform "isinstance" check inside numba
+        return self._hash == other._hash and np.array_equal(self.mask, other.mask)  # type: ignore
+
+    def __hash__(self) -> int:
+        return self._hash
 
 
 @jitclass
