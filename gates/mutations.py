@@ -1,7 +1,21 @@
+import functools
+
+import attrs
 from numba.typed import List as NumbaList
 
+import gates.fallible as fallible
 import gates.nor_gates as ng
 import gates.randomness as rand
+
+
+@attrs.frozen
+class MutationParameters:
+    mutants_to_generate: int
+    max_failures: int
+
+    def __attrs_post_init__(self) -> None:
+        assert self.mutants_to_generate >= 1
+        assert self.max_failures >= 0
 
 
 def modify_random_gene(individual: ng.NorClassifier, rng: rand.RNG) -> ng.NorClassifier:
@@ -62,19 +76,50 @@ def mutate_individual(individual: ng.NorClassifier, rng: rand.RNG) -> ng.NorClas
     return chosen_mutation(individual, rng)
 
 
-def generate_mutants(
+def try_generate_novel_mutant(
     population: list[ng.NorClassifier],
-    n_mutants: int,
+    blacklist: set[ng.NorClassifier],
     rng: rand.RNG,
-) -> list[ng.NorClassifier]:
-    assert n_mutants >= 1
+) -> ng.NorClassifier | None:
+    # not using rng.choice because type hints...
+    mutation_candidate_index = rng.integers(low=0, high=len(population))
+    mutation_candidate = population[mutation_candidate_index]
 
-    all_mutants: list[ng.NorClassifier] = []
+    mutant = mutate_individual(mutation_candidate, rng)
 
-    while len(all_mutants) != n_mutants:
-        mutation_candidate_index = rng.integers(low=0, high=len(population))
-        mutation_candidate = population[mutation_candidate_index]
-        generated_mutant = mutate_individual(mutation_candidate, rng)
-        all_mutants.append(generated_mutant)
+    if mutant in blacklist:
+        return None
 
-    return all_mutants
+    blacklist.add(mutant)
+    return mutant
+
+
+def try_generate_many_novel_mutants(
+    population: list[ng.NorClassifier],
+    params: MutationParameters,
+    blacklist: set[ng.NorClassifier],
+    rng: rand.RNG,
+) -> list[ng.NorClassifier] | None:
+    assert len(population) >= 1
+
+    # we only update the set of known individuals if we succeed
+    blacklist_copy = set(blacklist)
+
+    generator = functools.partial(
+        try_generate_novel_mutant,
+        population=population,
+        blacklist=blacklist_copy,
+        rng=rng,
+    )
+
+    results = fallible.collect_results_from_fallible_function(
+        generator,
+        num_results=params.mutants_to_generate,
+        max_failures=params.max_failures,
+    )
+
+    if results is None:
+        return None
+
+    blacklist.update(blacklist_copy)
+    return results
