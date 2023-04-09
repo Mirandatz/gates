@@ -26,7 +26,9 @@ def increase_genotype_size(
 ) -> ng.NorClassifier:
     genes = individual.gates
 
-    new_gene = ng.create_gate(mask_size=len(genes), rng=rng)
+    last_gate = genes[-1]
+
+    new_gene = ng.create_gate(mask_size=len(last_gate.mask) + 1, rng=rng)
     new_genotype = NumbaList(genes)
     new_genotype.append(new_gene)
 
