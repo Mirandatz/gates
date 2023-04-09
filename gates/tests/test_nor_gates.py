@@ -25,7 +25,7 @@ import gates.nor_gates as ng
         ([False, False], [False, True], True),
         ([False, False], [True, False], True),
         ([False, False], [True, True], True),
-        # bool8 overflow
+        # bool overflow
         ([True] * 254, [True] * 254, False),
         ([True] * 255, [True] * 255, False),
         ([True] * 256, [True] * 256, False),
@@ -47,12 +47,12 @@ def test_gate_predict_instance(
 
 
 def test_nor_classifier_predict_instance() -> None:
-    features = np.asarray([1, 1, 1], np.bool8)
+    features = np.asarray([1, 1, 1], np.bool_)
 
     gates = [
-        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool8)),
-        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool8)),
-        ng.NorGate(np.asarray([1, 1, 1, 1, 1], dtype=np.bool8)),
+        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool_)),
+        ng.NorGate(np.asarray([1, 1, 1], dtype=np.bool_)),
+        ng.NorGate(np.asarray([1, 1, 1, 1, 1], dtype=np.bool_)),
     ]
 
     classifier = ng.NorClassifier(
@@ -62,7 +62,7 @@ def test_nor_classifier_predict_instance() -> None:
     )
 
     predicted = classifier.predict_instance(features)
-    expected = np.asarray([0, 0, 0], np.bool8)
+    expected = np.asarray([0, 0, 0], np.bool_)
     assert np.array_equal(expected, predicted)
 
 

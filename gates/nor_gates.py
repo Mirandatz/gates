@@ -95,7 +95,7 @@ class NorClassifier:
         # will store feature values and the output of the gates
         augmented_features = np.zeros(
             shape=feature_count + len(self.gates),
-            dtype=np.bool8,
+            dtype=np.bool_,
         )
 
         # copy the original features
@@ -126,7 +126,7 @@ def parallel_predict_dataset(
 
     predicted_labels = np.empty(
         shape=(num_instances, classifier.num_classes),
-        dtype=np.bool8,
+        dtype=np.bool_,
     )
 
     for index in prange(num_instances):
