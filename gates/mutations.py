@@ -49,19 +49,30 @@ def decrease_genotype_size(
     )
 
 
-def mutate_genotype_size(
-    individual: ng.NorClassifier,
+def mutate_individual(individual: ng.NorClassifier, rng: rand.RNG) -> ng.NorClassifier:
+    mutation_types = [
+        modify_random_gene,
+        increase_genotype_size,
+        decrease_genotype_size,
+    ]
+    mutation_index = rng.integers(low=0, high=len(mutation_types))
+    chosen_mutation = mutation_types[mutation_index]
+    return chosen_mutation(individual, rng)
+
+
+def generate_mutants(
+    population: list[ng.NorClassifier],
+    n_mutants: int,
     rng: rand.RNG,
-) -> ng.NorClassifier:
-    genes = individual.gates
+) -> list[ng.NorClassifier]:
+    assert n_mutants >= 1
 
-    possible_mutation_types = ["increase_size"]
-    if len(genes) > individual.num_classes:
-        possible_mutation_types.append("decrease_size")
+    all_mutants: list[ng.NorClassifier] = []
 
-    chosen_mutation_type = rng.choice(possible_mutation_types)
+    while len(all_mutants) != n_mutants:
+        mutation_candidate_index = rng.integers(low=0, high=len(population))
+        mutation_candidate = population[mutation_candidate_index]
+        generated_mutant = mutate_individual(mutation_candidate, rng)
+        all_mutants.append(generated_mutant)
 
-    if chosen_mutation_type == "increase_size":
-        return increase_genotype_size(individual, rng)
-    else:
-        return decrease_genotype_size(individual, rng)
+    return all_mutants
