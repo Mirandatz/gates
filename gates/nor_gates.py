@@ -21,14 +21,15 @@ class NorGate:
 
     def __init__(self, mask: BoolArray) -> None:
         assert len(mask) >= 1
-        self.mask = mask.copy()
 
+        # should we put this in a function?
         hash = 2166136261
         hash = (hash * 16777619) ^ len(mask)
         for index, value in enumerate(mask):
             hash = (hash * 16777619) ^ ((index + 1) * (value + 2))
 
         self._hash = hash
+        self.mask = mask.copy()
 
     def predict_instance(self, features: BoolArray) -> bool:
         """
@@ -40,10 +41,11 @@ class NorGate:
         ored_features = relevant_features.sum() >= 1
         return not ored_features
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: "NorGate") -> bool:  # type: ignore
         # todo: improve this once numba is updated, because right now
         # we are unable to perform "isinstance" check inside numba
-        return self._hash == other._hash and np.array_equal(self.mask, other.mask)  # type: ignore
+
+        return self._hash == other._hash and np.array_equal(self.mask, other.mask)
 
     def __hash__(self) -> int:
         return self._hash
@@ -60,6 +62,8 @@ class NorClassifier:
     num_features: int
     num_classes: int
 
+    _hash: int
+
     def __init__(
         self,
         gates: typing.List[NorGate],
@@ -71,6 +75,7 @@ class NorClassifier:
         assert len(gates) >= num_classes
 
         # todo: explain why we perform this validation (flat vs layered storage)
+        # also, should we put this in a function?
         for i in range(1, len(gates)):
             prev = gates[i - 1]
             curr = gates[i]
@@ -79,9 +84,36 @@ class NorClassifier:
 
         assert len(gates[0].mask) <= num_features
 
+        # should we put this in a function?
+        _hash = 2166136261
+        _hash = (_hash * 16777619) ^ len(gates)
+        for index, value in enumerate(gates):
+            _hash = (_hash * 16777619) ^ ((index + 1) * (hash(value) + 2))
+
+        self._hash = _hash
+
         self.gates = NumbaList(gates)
         self.num_features = num_features
         self.num_classes = num_classes
+
+    def __eq__(self, other: "NorClassifier") -> bool:  # type: ignore
+        # todo: improve this once numba is updated, because right now
+        # we are unable to perform "isinstance" check inside numba
+
+        if self._hash != other._hash:
+            return False
+
+        if len(self.gates) != len(other.gates):
+            return False
+
+        for g1, g2 in zip(self.gates, other.gates):
+            if g1 != g2:
+                return False
+
+        return True
+
+    def __hash__(self) -> int:
+        return self._hash
 
     def predict_instance(self, features: BoolArray) -> BoolArray:
         """

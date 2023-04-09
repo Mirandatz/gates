@@ -75,3 +75,20 @@ def test_nor_gates_hash_and_eq() -> None:
     assert g1 == g2
     assert hash(g1) != hash(g3)
     assert g1 != g3
+
+
+def test_nor_classifiers_hash_and_eq() -> None:
+    g1 = ng.NorGate(np.asarray([0, 0, 0], np.bool_))
+    g2 = ng.NorGate(np.asarray([0, 0, 0], np.bool_))
+
+    g3 = ng.NorGate(np.asarray([0, 1, 0], np.bool_))
+    g4 = ng.NorGate(np.asarray([0, 1, 0], np.bool_))
+
+    c1 = ng.NorClassifier(NumbaList([g1, g3]), 3, 2)
+    c2 = ng.NorClassifier(NumbaList([g2, g4]), 3, 2)
+    c3 = ng.NorClassifier(NumbaList([g1, g2]), 3, 2)
+
+    assert hash(c1) == hash(c2)
+    assert c1 == c2
+    assert hash(c1) != hash(c3)
+    assert c1 != c3
